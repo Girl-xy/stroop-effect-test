@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>手机 Stroop 测验</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+            text-align: center;
+            margin: 0;
+            padding: 10px;
+            touch-action: manipulation;
+        }
+        #container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        #word {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 30px 0;
+            min-height: 60px;
+        }
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .color-btn {
+            width: 80px;
+            height: 80px;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        #start-btn {
+            padding: 12px 24px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        #results {
+            margin-top: 20px;
+            text-align: left;
+            display: none;
+        }
+        #restart-btn {
+            padding: 10px 20px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>Stroop 效应测验</h1>
+        <p>请点击单词的<strong>颜色</strong>（而不是文字意思）</p>
+        
+        <div id="word"></div>
+        
+        <div class="btn-container" id="buttons" style="display: none;">
+            <button class="color-btn" style="background: red;" onclick="checkAnswer('red')">红</button>
+            <button class="color-btn" style="background: green;" onclick="checkAnswer('green')">绿</button>
+            <button class="color-btn" style="background: blue;" onclick="checkAnswer('blue')">蓝</button>
+        </div>
+        
+        <button id="start-btn" onclick="startTest()">开始测试</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const colors = ["red", "green", "blue"];
+        const words = ["红", "绿", "蓝"];
+        const trials = 10; // 测试次数
+        let currentTrial = 0;
+        let correct = 0;
+        let reactionTimes = [];
+        let startTime;
+        let testRunning = false;
+
+        const wordElement = document.getElementById("word");
+        const buttonsDiv = document.getElementById("buttons");
+        const startBtn = document.getElementById("start-btn");
+        const resultsDiv = document.getElementById("results");
+
+        function startTest() {
+            testRunning = true;
+            startBtn.style.display = "none";
+            buttonsDiv.style.display = "flex";
+            nextTrial();
+        }
+
+        function nextTrial() {
+            if (currentTrial >= trials) {
+                endTest();
+                return;
+            }
+
+            const randomWord = words[Math.floor(Math.random() * words.length)];
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
+            wordElement.textContent = randomWord;
+            wordElement.style.color = randomColor;
+
+            startTime = new Date().getTime();
+            currentTrial++;
+        }
+
+        function checkAnswer(selectedColor) {
+            if (!testRunning) return;
+
+            const correctColor = wordElement.style.color;
+            const reactionTime = new Date().getTime() - startTime;
+
+            if (selectedColor === correctColor) {
+                correct++;
+                reactionTimes.push(reactionTime);
+            }
+
+            setTimeout(nextTrial, 300); // 延迟300ms进入下一题
+        }
+
+        function endTest() {
+            testRunning = false;
+            wordElement.textContent = "测试完成！";
+            buttonsDiv.style.display = "none";
+
+            const avgRT = reactionTimes.length > 0 
+                ? (reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length).toFixed(0)
+                : 0;
+            const accuracy = (correct / trials * 100).toFixed(1);
+
+            resultsDiv.style.display = "block";
+            resultsDiv.innerHTML = `
+                <h3>测试结果</h3>
+                <p>总次数: ${trials}</p>
+                <p>正确次数: ${correct}</p>
+                <p>正确率: ${accuracy}%</p>
+                <p>平均反应时间: ${avgRT} 毫秒</p>
+                <button id="restart-btn" onclick="window.location.reload()">重新测试</button>
+            `;
+        }
+    </script>
+</body>
+</html>
